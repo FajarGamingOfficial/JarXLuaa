@@ -1,12 +1,12 @@
--- Script GUI by Jar.x
--- Simple Menu: Speed, Jump, Teleport
+-- Script Jar.xHub by FajarGamingOfficial
+-- Update: Teleport Pakai Ketik Nama (Input Box)
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "Jar.x Hub",
-   LoadingTitle = "Jar.x Script",
-   LoadingSubtitle = "Loading Script...",
+   Name = "Jar.xHub",
+   LoadingTitle = "Jar.xHub",
+   LoadingSubtitle = "by FajarGamingOfficial",
    ConfigurationSaving = {
       Enabled = true,
       FolderName = "JarHub",
@@ -14,83 +14,62 @@ local Window = Rayfield:CreateWindow({
    }
 })
 
--- MENU UTAMA (Hanya 1 Tab)
-local Tab = Window:CreateTab("Main Menu", 4483362458)
+-- MENU UTAMA
+local Tab = Window:CreateTab("Main", 4483362458)
 
--- 1. FITUR SPEED
-Tab:CreateToggle({
-   Name = "Super Speed",
-   CurrentValue = false,
-   Flag = "SpeedToggle",
+-- 1. FITUR SPEED (SLIDER)
+Tab:CreateSlider({
+   Name = "WalkSpeed",
+   Range = {0, 500}, 
+   Increment = 1, 
+   CurrentValue = 16, 
+   Flag = "SpeedSlider", 
    Callback = function(Value)
-       if Value then
-           game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 100
-           Rayfield:Notify({Title = "Jar.x", Content = "Speed ON!", Duration = 2})
-       else
-           game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 16
-           Rayfield:Notify({Title = "Jar.x", Content = "Speed OFF", Duration = 2})
-       end
+       game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
    end
 })
 
--- 2. FITUR JUMP
-Tab:CreateToggle({
-   Name = "High Jump",
-   CurrentValue = false,
-   Flag = "JumpToggle",
+-- 2. FITUR JUMP (SLIDER)
+Tab:CreateSlider({
+   Name = "JumpPower",
+   Range = {0, 300}, 
+   Increment = 1, 
+   CurrentValue = 50, 
+   Flag = "JumpSlider", 
    Callback = function(Value)
-       if Value then
-           game.Players.LocalPlayer.Character.Humanoid.JumpPower = 200
-           Rayfield:Notify({Title = "Jar.x", Content = "Jump ON!", Duration = 2})
-       else
-           game.Players.LocalPlayer.Character.Humanoid.JumpPower = 50
-           Rayfield:Notify({Title = "Jar.x", Content = "Jump OFF", Duration = 2})
-       end
+       game.Players.LocalPlayer.Character.Humanoid.JumpPower = Value
    end
 })
 
--- 3. FITUR TELEPORT
-local TargetPlayer = ""
-
--- Dropdown Pilih Orang
-Tab:CreateDropdown({
-   Name = "Select Player",
-   Options = {},
-   CurrentOption = "",
-   Flag = "SelectPlayer",
-   Callback = function(Option)
-       TargetPlayer = Option
+-- 3. FITUR TELEPORT (INPUT BOX)
+-- Fitur ini memungkinkan Anda menambahkan tombol baru untuk setiap orang
+Tab:CreateInput({
+   Name = "Ketik Nama Target",
+   PlaceholderText = "Masukkan nama player...",
+   RemoveTextAfterFocusLost = false,
+   Callback = function(Text)
+       TargetName = Text -- Simpan nama yang diketik
+       Rayfield:Notify({Title = "Jar.xHub", Content = "Target Set: "..Text, Duration = 2})
    end
 })
 
--- Tombol Refresh Daftar Orang
 Tab:CreateButton({
-   Name = "Refresh Player List",
+   Name = "TELEPORT KE TARGET",
    Callback = function()
-       local players = {}
-       for i, v in pairs(game.Players:GetPlayers()) do
-           if v.Name ~= game.Players.LocalPlayer.Name then
-               table.insert(players, v.Name)
-           end
-       end
-       Rayfield:Notify({Title = "Jar.x", Content = "List Updated!", Duration = 2})
-   end
-})
+       if TargetName and TargetName ~= "" then
+           local target = game.Players:FindFirstChild(TargetName)
+           local me = game.Players.LocalPlayer
 
--- Tombol Teleport
-Tab:CreateButton({
-   Name = "TELEPORT TO PLAYER",
-   Callback = function()
-       local target = game.Players:FindFirstChild(TargetPlayer)
-       local me = game.Players.LocalPlayer
-
-       if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-           if me.Character and me.Character:FindFirstChild("HumanoidRootPart") then
-               me.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame
-               Rayfield:Notify({Title = "Jar.x", Content = "Teleport Success!", Duration = 2})
+           if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+               if me.Character and me.Character:FindFirstChild("HumanoidRootPart") then
+                   me.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame
+                   Rayfield:Notify({Title = "Jar.xHub", Content = "Teleporting to "..TargetName.."...", Duration = 3})
+               end
+           else
+               Rayfield:Notify({Title = "Error", Content = "Player "..TargetName.." Not Found!", Duration = 3})
            end
        else
-           Rayfield:Notify({Title = "Error", Content = "Player Not Found!", Duration = 2})
+           Rayfield:Notify({Title = "Error", Content = "Tulis nama dulu!", Duration = 2})
        end
    end
 })
