@@ -1,5 +1,5 @@
 -- Script Jar.xHub by FajarGamingOfficial
--- Update: Smart Teleport (Mencari dengan Inisial)
+-- Update: 3 Tab (Main, Teleport, Visual/ESP)
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
@@ -14,11 +14,11 @@ local Window = Rayfield:CreateWindow({
    }
 })
 
--- MENU UTAMA
-local Tab = Window:CreateTab("Main", 4483362458)
+-- TAB 1: MAIN (SPEED & JUMP)
+local TabMain = Window:CreateTab("Main", 4483362458)
 
 -- 1. FITUR SPEED (SLIDER)
-Tab:CreateSlider({
+TabMain:CreateSlider({
    Name = "WalkSpeed",
    Range = {0, 500}, 
    Increment = 1, 
@@ -30,7 +30,7 @@ Tab:CreateSlider({
 })
 
 -- 2. FITUR JUMP (SLIDER)
-Tab:CreateSlider({
+TabMain:CreateSlider({
    Name = "JumpPower",
    Range = {0, 300}, 
    Increment = 1, 
@@ -41,18 +41,21 @@ Tab:CreateSlider({
    end
 })
 
+-- TAB 2: TELEPORT
+local TabTeleport = Window:CreateTab("Teleport", 4483342458)
+
 -- 3. FITUR TELEPORT CERDAS
-Tab:CreateInput({
+TabTeleport:CreateInput({
    Name = "Ketik Inisial/Huruf",
    PlaceholderText = "Misal: S, A, Player...",
    RemoveTextAfterFocusLost = false,
    Callback = function(Text)
-       TargetInisial = Text -- Simpan teks yang diketik
+       TargetInisial = Text 
        Rayfield:Notify({Title = "Jar.xHub", Content = "Mencari: "..Text, Duration = 2})
    end
 })
 
-Tab:CreateButton({
+TabTeleport:CreateButton({
    Name = "TELEPORT (Cari Otomatis)",
    Callback = function()
        local me = game.Players.LocalPlayer
@@ -60,25 +63,19 @@ Tab:CreateButton({
        if TargetInisial and TargetInisial ~= "" then
            local foundPlayer = nil
            local foundName = ""
-
-           -- 1. Cari player yang namanya MENGANDUNG inisial tersebut (Case Insensitive)
-           -- Kita cari huruf besar/kecil sama saja
            local lowerTarget = string.lower(TargetInisial)
 
            for i, player in pairs(game.Players:GetPlayers()) do
-               if player ~= me then -- Jangan teleport ke diri sendiri
+               if player ~= me then
                    local playerName = string.lower(player.Name)
-                   
-                   -- Cek apakah nama player mengandung inisial yang diketik
                    if string.find(playerName, lowerTarget) then
                        foundPlayer = player
                        foundName = player.Name
-                       break -- Langsung ambil yang pertama ketemu
+                       break
                    end
                end
            end
 
-           -- 2. Eksekusi Teleport
            if foundPlayer and foundPlayer.Character and foundPlayer.Character:FindFirstChild("HumanoidRootPart") then
                if me.Character and me.Character:FindFirstChild("HumanoidRootPart") then
                    me.Character.HumanoidRootPart.CFrame = foundPlayer.Character.HumanoidRootPart.CFrame
@@ -89,6 +86,72 @@ Tab:CreateButton({
            end
        else
            Rayfield:Notify({Title = "Error", Content = "Ketik inisial dulu!", Duration = 2})
+       end
+   end
+})
+
+-- TAB 3: VISUAL (ESP)
+local TabVisual = Window:CreateTab("Visual", 4483345998)
+
+-- Variabel untuk menyimpan ESP agar bisa dimatikan
+local EspEnabled = false
+local EspBoxes = {}
+
+-- Fungsi membuat garis/kotak di atas kepala
+local function UpdateEsp()
+    -- Hapus ESP lama jika mati
+    if not EspEnabled then
+        for _, v in pairs(EspBoxes) do
+            if v and v.Parent then
+                v:Destroy()
+            end
+        end
+        EspBoxes = {}
+        return
+    end
+
+    -- Loop semua player
+    for i, player in pairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            
+            -- Cek apakah sudah ada ESP untuk player ini
+            local existingEsp = EspBoxes[player.Name]
+            
+            if not existingEsp then
+                -- Buat GUI baru (Highlight)
+                local highlight = Instance.new("Highlight")
+                highlight.Name = "JarESPHighlight"
+                highlight.FillColor = Color3.fromRGB(255, 0, 0) -- Merah
+                highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                highlight.FillTransparency = 0.5
+                highlight.OutlineTransparency = 0
+                highlight.Adornee = player.Character
+                highlight.Parent = player.Character
+                EspBoxes[player.Name] = highlight
+            end
+        end
+    end
+end
+
+TabVisual:CreateToggle({
+   Name = "ESP Player (Red Highlight)",
+   CurrentValue = false,
+   Flag = "ESPToggle",
+   Callback = function(Value)
+       EspEnabled = Value
+       
+       if Value then
+           Rayfield:Notify({Title = "Jar.xHub", Content = "ESP ON!", Duration = 2})
+           -- Jalankan loop ESP
+           spawn(function()
+               while EspEnabled do
+                   UpdateEsp()
+                   wait(1) -- Update tiap 1 detik
+               end
+           end)
+       else
+           Rayfield:Notify({Title = "Jar.xHub", Content = "ESP OFF", Duration = 2})
+           UpdateEsp() -- Fungsi ini akan menghapus ESP
        end
    end
 })
