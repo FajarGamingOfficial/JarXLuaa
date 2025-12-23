@@ -1,5 +1,5 @@
 -- Script Jar.xHub by FajarGamingOfficial
--- Khusus Map VIOLENCE DISTRICT (Specimen Zero)
+-- Update v5: Ikon Tab THEME bergambar Gear
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
@@ -14,12 +14,12 @@ local Window = Rayfield:CreateWindow({
    }
 })
 
--- TAB 1: MAIN (SPEED & JUMP)
-local TabMain = Window:CreateTab("Main", 4483362458)
+-- TAB 1: PLAYER (Ikon Orang)
+local TabMain = Window:CreateTab("PLAYER", 4483362458)
 
 TabMain:CreateSlider({
    Name = "WalkSpeed",
-   Range = {0, 500}, 
+   Range = {16, 500}, 
    Increment = 1, 
    CurrentValue = 16, 
    Flag = "SpeedSlider", 
@@ -30,7 +30,7 @@ TabMain:CreateSlider({
 
 TabMain:CreateSlider({
    Name = "JumpPower",
-   Range = {0, 300}, 
+   Range = {50, 300}, 
    Increment = 1, 
    CurrentValue = 50, 
    Flag = "JumpSlider", 
@@ -39,12 +39,12 @@ TabMain:CreateSlider({
    end
 })
 
--- TAB 2: TELEPORT
-local TabTeleport = Window:CreateTab("Teleport", 4483342458)
+-- TAB 2: TELEPORT (Ikon Lokasi)
+local TabTeleport = Window:CreateTab("TELEPORT", 4483342458)
 
 TabTeleport:CreateInput({
-   Name = "Ketik Inisial/Huruf",
-   PlaceholderText = "Misal: S, A, Player...",
+   Name = "GO TO",
+   PlaceholderText = "User",
    RemoveTextAfterFocusLost = false,
    Callback = function(Text)
        TargetInisial = Text 
@@ -53,7 +53,7 @@ TabTeleport:CreateInput({
 })
 
 TabTeleport:CreateButton({
-   Name = "TELEPORT (Cari Otomatis)",
+   Name = "TELEPORT",
    Callback = function()
        local me = game.Players.LocalPlayer
        if TargetInisial and TargetInisial ~= "" then
@@ -75,7 +75,7 @@ TabTeleport:CreateButton({
            if foundPlayer and foundPlayer.Character and foundPlayer.Character:FindFirstChild("HumanoidRootPart") then
                if me.Character and me.Character:FindFirstChild("HumanoidRootPart") then
                    me.Character.HumanoidRootPart.CFrame = foundPlayer.Character.HumanoidRootPart.CFrame
-                   Rayfield:Notify({Title = "Jar.xHub", Content = "Teleport ke: "..foundName, Duration = 3})
+                   Rayfield:Notify({Title = "Jar.xHub", Content = "Teleport to: "..foundName, Duration = 3})
                end
            else
                Rayfield:Notify({Title = "Error", Content = "Player '"..TargetInisial.."' tidak ketemu!", Duration = 3})
@@ -86,15 +86,13 @@ TabTeleport:CreateButton({
    end
 })
 
--- TAB 3: VISUAL (ESP VIOLENCE DISTRICT - MAP SPECIMEN ZERO)
-local TabVisual = Window:CreateTab("Visual", 4483345998)
+-- TAB 3: ESP (Ikon Mata)
+local TabVisual = Window:CreateTab("ESP", 4483345998)
 
 local EspEnabled = false
 local EspBoxes = {}
 
--- Fungsi ESP Khusus Map Violence District (Mencari Model)
 local function UpdateEsp()
-    -- Hapus ESP lama jika mati
     if not EspEnabled then
         for _, v in pairs(EspBoxes) do
             if v and v.Parent then
@@ -105,37 +103,50 @@ local function UpdateEsp()
         return
     end
 
-    -- 1. Cari Model Monster (Biasanya bernama "Specimen" atau "Enemy")
-    -- Di Violence District, monster adalah NPC (Model)
-    local allModels = workspace:GetDescendants()
-    
-    for _, obj in pairs(allModels) do
-        -- Cek apakah itu Model (Monster/Enemy)
-        if obj:IsA("Model") and obj.Name ~= "Map" and obj.Name ~= game.Players.LocalPlayer.Name then
+    -- 1. Loop untuk PLAYERS (Warna BIRU)
+    for i, player in pairs(game.Players:GetPlayers()) do
+        if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local existingEsp = EspBoxes[player.Name]
             
-            -- Filter: Cari yang punya Humanoid (Tanda itu makhluk hidup)
-            if obj:FindFirstChild("Humanoid") and obj:FindFirstChild("HumanoidRootPart") then
-                
-                -- Jangan ESP Player (Kita hanya mau Monster di Violence District)
+            if not existingEsp then
+                local highlight = Instance.new("Highlight")
+                highlight.Name = "JarESP_Player"
+                highlight.FillColor = Color3.fromRGB(0, 0, 255) -- BIRU
+                highlight.OutlineColor = Color3.fromRGB(255,255,255)
+                highlight.FillTransparency = 0.3
+                highlight.OutlineTransparency = 0
+                highlight.Adornee = player.Character
+                highlight.Parent = player.Character
+                EspBoxes[player.Name] = highlight
+            end
+        end
+    end
+
+    -- 2. Loop untuk NPC/MONSTER (Warna HIJAU)
+    for _, obj in pairs(workspace:GetChildren()) do
+        if obj:IsA("Model") and obj ~= game.Players.LocalPlayer.Character then
+            
+            local humanoid = obj:FindFirstChild("Humanoid")
+            local hrp = obj:FindFirstChild("HumanoidRootPart")
+
+            if humanoid and hrp then
                 local isPlayer = false
-                for _, player in pairs(game.Players:GetPlayers()) do
-                    if player.Character == obj then
+                for _, plr in pairs(game.Players:GetPlayers()) do
+                    if plr.Character == obj then
                         isPlayer = true
                         break
                     end
                 end
 
-                -- Jika BUKAN Player, maka dia MONSTER
                 if not isPlayer then
                     local existingEsp = EspBoxes[obj.Name]
                     
                     if not existingEsp then
-                        -- Buat Highlight (Warna Merah Terang)
                         local highlight = Instance.new("Highlight")
-                        highlight.Name = "JarEspViolenceDistrict"
-                        highlight.FillColor = Color3.fromRGB(255, 0, 0) -- Merah Darah
-                        highlight.OutlineColor = Color3.fromRGB(0, 0, 0) -- Hitam
-                        highlight.FillTransparency = 0.3
+                        highlight.Name = "JarESP_Monster"
+                        highlight.FillColor = Color3.fromRGB(0, 255, 0) -- HIJAU
+                        highlight.OutlineColor = Color3.fromRGB(0, 0, 0)
+                        highlight.FillTransparency = 0.4
                         highlight.OutlineTransparency = 0
                         highlight.Adornee = obj
                         highlight.Parent = obj
@@ -148,24 +159,40 @@ local function UpdateEsp()
 end
 
 TabVisual:CreateToggle({
-   Name = "ESP Violence District (Monster)",
+   Name = "Player & Monster",
    CurrentValue = false,
    Flag = "ESPToggle",
    Callback = function(Value)
        EspEnabled = Value
        
        if Value then
-           Rayfield:Notify({Title = "Jar.xHub", Content = "ESP ON! Lihat monster di tembok.", Duration = 2})
+           Rayfield:Notify({Title = "Jar.xHub", Content = "ESP ON!", Duration = 2})
+           for _, v in pairs(EspBoxes) do if v and v.Parent then v:Destroy() end end
+           EspBoxes = {}
+           
            spawn(function()
                while EspEnabled do
                    UpdateEsp()
-                   wait(1.5) -- Update tiap 1.5 detik
+                   wait(2)
                end
            end)
        else
            Rayfield:Notify({Title = "Jar.xHub", Content = "ESP OFF", Duration = 2})
-           UpdateEsp() -- Bersihkan
+           UpdateEsp()
        end
+   end
+})
+
+-- TAB 4: THEME (IKON GEAR / GERIGI)
+local TabTheme = Window:CreateTab("THEME", 6034167891) -- ID IKON GEAR
+
+TabTheme:CreateDropdown({
+   Name = "Select Theme (UI)",
+   Options = {"Default", "Ammely", "Grape", "Blue", "Dark", "Serika"},
+   CurrentOption = "Default",
+   Flag = "ThemeSelector",
+   Callback = function(Option)
+       -- Otomatis save
    end
 })
 
