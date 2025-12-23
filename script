@@ -1,5 +1,5 @@
 -- Script Jar.xHub by FajarGamingOfficial
--- Update: Teleport Pakai Ketik Nama (Input Box)
+-- Update: Smart Teleport (Mencari dengan Inisial)
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
@@ -41,35 +41,54 @@ Tab:CreateSlider({
    end
 })
 
--- 3. FITUR TELEPORT (INPUT BOX)
--- Fitur ini memungkinkan Anda menambahkan tombol baru untuk setiap orang
+-- 3. FITUR TELEPORT CERDAS
 Tab:CreateInput({
-   Name = "Ketik Nama Target",
-   PlaceholderText = "Masukkan nama player...",
+   Name = "Ketik Inisial/Huruf",
+   PlaceholderText = "Misal: S, A, Player...",
    RemoveTextAfterFocusLost = false,
    Callback = function(Text)
-       TargetName = Text -- Simpan nama yang diketik
-       Rayfield:Notify({Title = "Jar.xHub", Content = "Target Set: "..Text, Duration = 2})
+       TargetInisial = Text -- Simpan teks yang diketik
+       Rayfield:Notify({Title = "Jar.xHub", Content = "Mencari: "..Text, Duration = 2})
    end
 })
 
 Tab:CreateButton({
-   Name = "TELEPORT KE TARGET",
+   Name = "TELEPORT (Cari Otomatis)",
    Callback = function()
-       if TargetName and TargetName ~= "" then
-           local target = game.Players:FindFirstChild(TargetName)
-           local me = game.Players.LocalPlayer
+       local me = game.Players.LocalPlayer
+       
+       if TargetInisial and TargetInisial ~= "" then
+           local foundPlayer = nil
+           local foundName = ""
 
-           if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+           -- 1. Cari player yang namanya MENGANDUNG inisial tersebut (Case Insensitive)
+           -- Kita cari huruf besar/kecil sama saja
+           local lowerTarget = string.lower(TargetInisial)
+
+           for i, player in pairs(game.Players:GetPlayers()) do
+               if player ~= me then -- Jangan teleport ke diri sendiri
+                   local playerName = string.lower(player.Name)
+                   
+                   -- Cek apakah nama player mengandung inisial yang diketik
+                   if string.find(playerName, lowerTarget) then
+                       foundPlayer = player
+                       foundName = player.Name
+                       break -- Langsung ambil yang pertama ketemu
+                   end
+               end
+           end
+
+           -- 2. Eksekusi Teleport
+           if foundPlayer and foundPlayer.Character and foundPlayer.Character:FindFirstChild("HumanoidRootPart") then
                if me.Character and me.Character:FindFirstChild("HumanoidRootPart") then
-                   me.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame
-                   Rayfield:Notify({Title = "Jar.xHub", Content = "Teleporting to "..TargetName.."...", Duration = 3})
+                   me.Character.HumanoidRootPart.CFrame = foundPlayer.Character.HumanoidRootPart.CFrame
+                   Rayfield:Notify({Title = "Jar.xHub", Content = "Teleport ke: "..foundName, Duration = 3})
                end
            else
-               Rayfield:Notify({Title = "Error", Content = "Player "..TargetName.." Not Found!", Duration = 3})
+               Rayfield:Notify({Title = "Error", Content = "Player '"..TargetInisial.."' tidak ketemu!", Duration = 3})
            end
        else
-           Rayfield:Notify({Title = "Error", Content = "Tulis nama dulu!", Duration = 2})
+           Rayfield:Notify({Title = "Error", Content = "Ketik inisial dulu!", Duration = 2})
        end
    end
 })
