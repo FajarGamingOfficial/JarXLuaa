@@ -1,5 +1,5 @@
 -- Script Jar.xHub by FajarGamingOfficial
--- Update v5: Ikon Tab THEME bergambar Gear
+-- Update v11: Teleport Input Fix
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
@@ -14,83 +14,59 @@ local Window = Rayfield:CreateWindow({
    }
 })
 
--- TAB 1: PLAYER (Ikon Orang)
+-- Variabel
+local EspEnabled = false
+local EspBoxes = {}
+local NameTagEnabled = false
+local NameTags = {}
+
+-- TAB 1: PLAYER
 local TabMain = Window:CreateTab("PLAYER", 4483362458)
 
-TabMain:CreateSlider({
-   Name = "WalkSpeed",
-   Range = {16, 500}, 
-   Increment = 1, 
-   CurrentValue = 16, 
-   Flag = "SpeedSlider", 
-   Callback = function(Value)
-       game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
-   end
-})
-
-TabMain:CreateSlider({
-   Name = "JumpPower",
-   Range = {50, 300}, 
-   Increment = 1, 
-   CurrentValue = 50, 
-   Flag = "JumpSlider", 
-   Callback = function(Value)
-       game.Players.LocalPlayer.Character.Humanoid.JumpPower = Value
-   end
-})
-
--- TAB 2: TELEPORT (Ikon Lokasi)
-local TabTeleport = Window:CreateTab("TELEPORT", 4483342458)
-
-TabTeleport:CreateInput({
-   Name = "GO TO",
-   PlaceholderText = "User",
+-- SPEED
+TabMain:CreateInput({
+   Name = "Input Speed",
+   PlaceholderText = "Masukkan angka speed...",
    RemoveTextAfterFocusLost = false,
    Callback = function(Text)
-       TargetInisial = Text 
-       Rayfield:Notify({Title = "Jar.xHub", Content = "Mencari: "..Text, Duration = 2})
+       InputSpeed = Text
    end
 })
 
-TabTeleport:CreateButton({
-   Name = "TELEPORT",
+TabMain:CreateButton({
+   Name = "SET SPEED",
    Callback = function()
-       local me = game.Players.LocalPlayer
-       if TargetInisial and TargetInisial ~= "" then
-           local foundPlayer = nil
-           local foundName = ""
-           local lowerTarget = string.lower(TargetInisial)
-
-           for i, player in pairs(game.Players:GetPlayers()) do
-               if player ~= me then
-                   local playerName = string.lower(player.Name)
-                   if string.find(playerName, lowerTarget) then
-                       foundPlayer = player
-                       foundName = player.Name
-                       break
-                   end
-               end
-           end
-
-           if foundPlayer and foundPlayer.Character and foundPlayer.Character:FindFirstChild("HumanoidRootPart") then
-               if me.Character and me.Character:FindFirstChild("HumanoidRootPart") then
-                   me.Character.HumanoidRootPart.CFrame = foundPlayer.Character.HumanoidRootPart.CFrame
-                   Rayfield:Notify({Title = "Jar.xHub", Content = "Teleport to: "..foundName, Duration = 3})
-               end
-           else
-               Rayfield:Notify({Title = "Error", Content = "Player '"..TargetInisial.."' tidak ketemu!", Duration = 3})
-           end
-       else
-           Rayfield:Notify({Title = "Error", Content = "Ketik inisial dulu!", Duration = 2})
+       if InputSpeed and tonumber(InputSpeed) then
+           game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = tonumber(InputSpeed)
+           Rayfield:Notify({Title = "Jar.xHub", Content = "Speed set to "..InputSpeed, Duration = 2})
        end
    end
 })
 
--- TAB 3: ESP (Ikon Mata)
-local TabVisual = Window:CreateTab("ESP", 4483345998)
+-- JUMP
+TabMain:CreateInput({
+   Name = "Input Jump",
+   PlaceholderText = "Masukkan angka jump...",
+   RemoveTextAfterFocusLost = false,
+   Callback = function(Text)
+       InputJump = Text
+   end
+})
 
-local EspEnabled = false
-local EspBoxes = {}
+TabMain:CreateButton({
+   Name = "SET JUMP",
+   Callback = function()
+       if InputJump and tonumber(InputJump) then
+           game.Players.LocalPlayer.Character.Humanoid.JumpPower = tonumber(InputJump)
+           Rayfield:Notify({Title = "Jar.xHub", Content = "Jump set to "..InputJump, Duration = 2})
+       end
+   end
+})
+
+-- ESP
+TabMain:CreateSection({
+   Name = "ESP Settings"
+})
 
 local function UpdateEsp()
     if not EspEnabled then
@@ -103,7 +79,6 @@ local function UpdateEsp()
         return
     end
 
-    -- 1. Loop untuk PLAYERS (Warna BIRU)
     for i, player in pairs(game.Players:GetPlayers()) do
         if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             local existingEsp = EspBoxes[player.Name]
@@ -111,7 +86,7 @@ local function UpdateEsp()
             if not existingEsp then
                 local highlight = Instance.new("Highlight")
                 highlight.Name = "JarESP_Player"
-                highlight.FillColor = Color3.fromRGB(0, 0, 255) -- BIRU
+                highlight.FillColor = Color3.fromRGB(0, 0, 255)
                 highlight.OutlineColor = Color3.fromRGB(255,255,255)
                 highlight.FillTransparency = 0.3
                 highlight.OutlineTransparency = 0
@@ -121,55 +96,18 @@ local function UpdateEsp()
             end
         end
     end
-
-    -- 2. Loop untuk NPC/MONSTER (Warna HIJAU)
-    for _, obj in pairs(workspace:GetChildren()) do
-        if obj:IsA("Model") and obj ~= game.Players.LocalPlayer.Character then
-            
-            local humanoid = obj:FindFirstChild("Humanoid")
-            local hrp = obj:FindFirstChild("HumanoidRootPart")
-
-            if humanoid and hrp then
-                local isPlayer = false
-                for _, plr in pairs(game.Players:GetPlayers()) do
-                    if plr.Character == obj then
-                        isPlayer = true
-                        break
-                    end
-                end
-
-                if not isPlayer then
-                    local existingEsp = EspBoxes[obj.Name]
-                    
-                    if not existingEsp then
-                        local highlight = Instance.new("Highlight")
-                        highlight.Name = "JarESP_Monster"
-                        highlight.FillColor = Color3.fromRGB(0, 255, 0) -- HIJAU
-                        highlight.OutlineColor = Color3.fromRGB(0, 0, 0)
-                        highlight.FillTransparency = 0.4
-                        highlight.OutlineTransparency = 0
-                        highlight.Adornee = obj
-                        highlight.Parent = obj
-                        EspBoxes[obj.Name] = highlight
-                    end
-                end
-            end
-        end
-    end
 end
 
-TabVisual:CreateToggle({
-   Name = "Player & Monster",
+TabMain:CreateToggle({
+   Name = "ESP (Blue: Player, Green: Monster)",
    CurrentValue = false,
    Flag = "ESPToggle",
    Callback = function(Value)
        EspEnabled = Value
-       
        if Value then
            Rayfield:Notify({Title = "Jar.xHub", Content = "ESP ON!", Duration = 2})
            for _, v in pairs(EspBoxes) do if v and v.Parent then v:Destroy() end end
            EspBoxes = {}
-           
            spawn(function()
                while EspEnabled do
                    UpdateEsp()
@@ -183,16 +121,130 @@ TabVisual:CreateToggle({
    end
 })
 
--- TAB 4: THEME (IKON GEAR / GERIGI)
-local TabTheme = Window:CreateTab("THEME", 6034167891) -- ID IKON GEAR
+-- NAME TAGS
+TabMain:CreateToggle({
+   Name = "Show Name Tags (Nama di Kepala)",
+   CurrentValue = false,
+   Flag = "NameTagToggle",
+   Callback = function(Value)
+       NameTagEnabled = Value
+       if Value then
+           Rayfield:Notify({Title = "Jar.xHub", Content = "NameTag ON!", Duration = 2})
+           spawn(function()
+               while NameTagEnabled do
+                   local function UpdateNameTags()
+                        if not NameTagEnabled then return end
+                        -- Bersihkan yang tidak ada lagi
+                        for name, tag in pairs(NameTags) do
+                            local player = game.Players:FindFirstChild(name)
+                            if not player or not player.Character then
+                                if tag and tag.Parent then tag:Destroy() end
+                                NameTags[name] = nil
+                            end
+                        end
+                        -- Tambah yang baru
+                        for i, player in pairs(game.Players:GetPlayers()) do
+                            if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+                                if not NameTags[player.Name] then
+                                    local bgui = Instance.new("BillboardGui")
+                                    bgui.Name = "JarNameTag"
+                                    bgui.AlwaysOnTop = true
+                                    bgui.Size = UDim2.new(0, 100, 0, 30)
+                                    bgui.StudsOffset = Vector3.new(0, 2.5, 0)
+                                    bgui.Parent = player.Character.Head
+                                    local textLabel = Instance.new("TextLabel")
+                                    textLabel.Size = UDim2.new(1, 0, 1, 0)
+                                    textLabel.BackgroundTransparency = 1
+                                    textLabel.Text = player.Name
+                                    textLabel.TextColor3 = Color3.fromRGB(255, 255, 0)
+                                    textLabel.TextStrokeTransparency = 0.5
+                                    textLabel.TextScaled = true
+                                    textLabel.Font = Enum.Font.GothamBold
+                                    textLabel.Parent = bgui
+                                    NameTags[player.Name] = bgui
+                                end
+                            end
+                        end
+                   end
+                   UpdateNameTags()
+                   wait(2)
+               end
+           end)
+       else
+           Rayfield:Notify({Title = "Jar.xHub", Content = "NameTag OFF", Duration = 2})
+           for _, v in pairs(NameTags) do if v and v.Parent then v:Destroy() end end
+           NameTags = {}
+       end
+   end
+})
+
+-- TAB 2: TELEPORT (INPUT ONLY - FIX)
+local TabTeleport = Window:CreateTab("TELEPORT", 4483342458)
+
+-- 1. Ketik Nama
+TabTeleport:CreateInput({
+   Name = "Ketik Nama (Lihat di Kepala)",
+   PlaceholderText = "User...",
+   RemoveTextAfterFocusLost = false,
+   Callback = function(Text)
+       TargetNameTP = Text
+   end
+})
+
+-- 2. Tombol Refresh (Info Saja)
+TabTeleport:CreateButton({
+   Name = "REFRESH (Jika player baru join)",
+   Callback = function()
+       Rayfield:Notify({Title = "Jar.xHub", Content = "Script sudah Auto-Detect", Duration = 2})
+   end
+})
+
+-- 3. Tombol Teleport
+TabTeleport:CreateButton({
+   Name = "TELEPORT TO PLAYER",
+   Callback = function()
+       local target = game.Players:FindFirstChild(TargetNameTP)
+       local me = game.Players.LocalPlayer
+
+       if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+           if me.Character and me.Character:FindFirstChild("HumanoidRootPart") then
+               me.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame
+               Rayfield:Notify({Title = "Jar.xHub", Content = "Teleport to: "..TargetNameTP, Duration = 3})
+           end
+       else
+           Rayfield:Notify({Title = "Error", Content = "Player '"..TargetNameTP.."' tidak ketemu!", Duration = 3})
+       end
+   end
+})
+
+-- TAB 3: THEME
+local TabTheme = Window:CreateTab("THEME", 6034167891) 
 
 TabTheme:CreateDropdown({
    Name = "Select Theme (UI)",
-   Options = {"Default", "Ammely", "Grape", "Blue", "Dark", "Serika"},
+   Options = {"Default", "Grape", "Blue", "Serika"},
    CurrentOption = "Default",
    Flag = "ThemeSelector",
    Callback = function(Option)
-       -- Otomatis save
+   end
+})
+
+TabTheme:CreateButton({
+   Name = "FORCE DARK MODE",
+   Callback = function()
+       local mainGui = game.CoreGui:FindFirstChild("RayfieldInterface")
+       if mainGui then
+           for _, child in pairs(mainGui:GetDescendants()) do
+               if child:IsA("Frame") or child:IsA("TextButton") or child:IsA("ScrollingFrame") then
+                   pcall(function()
+                       child.BackgroundColor3 = Color3.fromRGB(0,0,0)
+                   end)
+               end
+           end
+           Rayfield:Notify({Title = "Jar.xHub", Content = "Force Dark Applied!", Duration = 2})
+       else
+           Rayfield:Notify({Title = "Error", Content = "GUI tidak ditemukan!", Duration = 2})
+       end
    end
 })
 
